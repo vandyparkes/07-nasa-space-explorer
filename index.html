@@ -16,7 +16,7 @@
     <div class="filters">
       <input type="date" id="startDate" />
       <input type="date" id="endDate" />
-      <button>Get Space Images</button>
+      <button type="button" id="fetchButton">Get Space Images</button>
     </div>
 
     <div id="gallery" class="gallery">
@@ -27,7 +27,28 @@
     </div>
   </div>
 
+  <div
+    id="apodModal"
+    class="modal"
+    hidden
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modalTitle"
+  >
+    <div class="modal-backdrop" data-modal-close tabindex="-1" aria-hidden="true"></div>
+    <div class="modal-panel">
+      <button type="button" class="modal-close" data-modal-close aria-label="Close dialog">
+        &times;
+      </button>
+      <div class="modal-media" id="modalMedia"></div>
+      <h2 id="modalTitle" class="modal-title"></h2>
+      <p id="modalDate" class="modal-date"></p>
+      <p id="modalExplanation" class="modal-explanation"></p>
+    </div>
+  </div>
+
   <script src="js/dateRange.js"></script>
+  <script src="js/config.js"></script>
   <script src="js/script.js"></script>
 </body>
 </html>
