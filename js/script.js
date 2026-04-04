@@ -284,9 +284,12 @@ function openApodModal(item) {
 function createApodCard(item) {
   const card = document.createElement('article');
   card.className = 'gallery-item';
-  card.tabIndex = 0;
-  card.setAttribute('role', 'button');
-  card.setAttribute(
+
+  const media = document.createElement('div');
+  media.className = 'gallery-item__media';
+  media.tabIndex = 0;
+  media.setAttribute('role', 'button');
+  media.setAttribute(
     'aria-label',
     `View details: ${item.title || 'Untitled'}${item.date ? `, ${item.date}` : ''}`
   );
@@ -296,14 +299,14 @@ function createApodCard(item) {
     img.src = item.url;
     img.alt = item.title || 'NASA Astronomy Picture of the Day';
     img.loading = 'lazy';
-    card.appendChild(img);
+    media.appendChild(img);
   } else if (item.media_type === 'video') {
     if (item.thumbnail_url) {
       const thumb = document.createElement('img');
       thumb.src = item.thumbnail_url;
       thumb.alt = 'Video thumbnail';
       thumb.loading = 'lazy';
-      card.appendChild(thumb);
+      media.appendChild(thumb);
     }
     if (item.url) {
       const link = document.createElement('a');
@@ -311,9 +314,8 @@ function createApodCard(item) {
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
       link.textContent = 'Open video';
-      link.style.display = 'inline-block';
-      link.style.marginTop = '8px';
-      card.appendChild(link);
+      link.className = 'gallery-item__video-link';
+      media.appendChild(link);
     }
   } else if (item.url) {
     const link = document.createElement('a');
@@ -321,29 +323,31 @@ function createApodCard(item) {
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     link.textContent = 'Open media';
-    card.appendChild(link);
+    media.appendChild(link);
   }
 
+  const caption = document.createElement('div');
+  caption.className = 'gallery-item__caption';
+
   const heading = document.createElement('h2');
+  heading.className = 'gallery-item__title';
   heading.textContent = item.title || 'Untitled';
-  heading.style.fontSize = '1.1rem';
-  heading.style.marginTop = '10px';
-  heading.style.marginBottom = '6px';
-  card.appendChild(heading);
+  caption.appendChild(heading);
 
   const dateLine = document.createElement('p');
+  dateLine.className = 'gallery-item__date';
   dateLine.textContent = item.date || '';
-  dateLine.style.color = '#888';
-  dateLine.style.fontSize = '13px';
-  dateLine.style.marginTop = '0';
-  card.appendChild(dateLine);
+  caption.appendChild(dateLine);
+
+  card.appendChild(media);
+  card.appendChild(caption);
 
   const open = (e) => {
     if (e.target.closest('a')) return;
     openApodModal(item);
   };
-  card.addEventListener('click', open);
-  card.addEventListener('keydown', (e) => {
+  media.addEventListener('click', open);
+  media.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       open(e);
