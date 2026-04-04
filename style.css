@@ -39,8 +39,11 @@
   --color-cool-blue-lighter: #8ba6ca;
   --color-cool-blue-lightest: #dce4ef;
 
-  --color-bg-page: var(--color-cool-blue-lightest);
-  /* Target repeat size in px; keep in sync with patternTransform scale on #palette-squares-pattern (84 × scale) */
+  /* Darker than cool-blue-lightest so the page reads less bright behind the grid */
+  --color-bg-page: #b8c8df;
+  /* Applied to the full-screen palette SVG (1 = unchanged) */
+  --palette-bg-brightness: 0.82;
+  /* Target repeat size in px; keep in sync with patternTransform scale on plaid patterns (84 × scale) */
   --palette-square-tile: 96px;
 }
 
@@ -76,6 +79,14 @@ body {
   display: block;
   width: 100%;
   height: 100%;
+  filter: brightness(var(--palette-bg-brightness));
+  isolation: isolate;
+}
+
+/* Vertical threads sit on top of horizontal bands for a woven plaid */
+.palette-bg-svg .plaid-warp-overlay {
+  mix-blend-mode: multiply;
+  opacity: 0.58;
 }
 
 /* Per-tile drift: hue / saturation / brightness never fully re-sync (unique duration + delay + direction) */
@@ -100,131 +111,64 @@ body {
   }
 }
 
-#palette-squares-pattern rect {
+#plaid-weft rect,
+#plaid-warp rect {
   transform-box: fill-box;
   transform-origin: center;
   animation: palette-tile-drift calc(11.3s + var(--palette-i) * 0.437s) ease-in-out infinite alternate;
   animation-delay: calc(var(--palette-i) * -0.583s);
 }
 
-#palette-squares-pattern rect:nth-of-type(even) {
+#plaid-weft rect:nth-of-type(even),
+#plaid-warp rect:nth-of-type(even) {
   animation-direction: alternate-reverse;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #palette-squares-pattern rect {
+  #plaid-weft rect,
+  #plaid-warp rect {
     animation: none;
   }
 }
 
-/* Fills from :root vars (stylesheet path; works inside <pattern>) */
-#palette-squares-pattern rect:nth-of-type(1) {
+/* Horizontal bands (weft): former checkerboard top row */
+#plaid-weft rect:nth-of-type(1) {
   fill: var(--color-primary);
 }
-#palette-squares-pattern rect:nth-of-type(2) {
+#plaid-weft rect:nth-of-type(2) {
   fill: var(--color-primary-darker);
 }
-#palette-squares-pattern rect:nth-of-type(3) {
+#plaid-weft rect:nth-of-type(3) {
   fill: var(--color-primary-darkest);
 }
-#palette-squares-pattern rect:nth-of-type(4) {
+#plaid-weft rect:nth-of-type(4) {
   fill: var(--color-base);
 }
-#palette-squares-pattern rect:nth-of-type(5) {
+#plaid-weft rect:nth-of-type(5) {
   fill: var(--color-gray-dark);
 }
-#palette-squares-pattern rect:nth-of-type(6) {
+#plaid-weft rect:nth-of-type(6) {
   fill: var(--color-gray);
 }
-#palette-squares-pattern rect:nth-of-type(7) {
-  fill: var(--color-gray-light);
+
+/* Vertical bands (warp): colors from former column 2 for crossing contrast */
+#plaid-warp rect:nth-of-type(1) {
+  fill: var(--color-primary-darkest);
 }
-#palette-squares-pattern rect:nth-of-type(8) {
-  fill: var(--color-gray-lighter);
-}
-#palette-squares-pattern rect:nth-of-type(9) {
+#plaid-warp rect:nth-of-type(2) {
   fill: var(--color-gray-lightest);
 }
-#palette-squares-pattern rect:nth-of-type(10) {
-  fill: var(--color-white);
-}
-#palette-squares-pattern rect:nth-of-type(11) {
-  fill: var(--color-visited);
-}
-#palette-squares-pattern rect:nth-of-type(12) {
-  fill: var(--color-focus);
-}
-#palette-squares-pattern rect:nth-of-type(13) {
-  fill: var(--color-primary-alt);
-}
-#palette-squares-pattern rect:nth-of-type(14) {
-  fill: var(--color-primary-alt-darkest);
-}
-#palette-squares-pattern rect:nth-of-type(15) {
+#plaid-warp rect:nth-of-type(3) {
   fill: var(--color-primary-alt-dark);
 }
-#palette-squares-pattern rect:nth-of-type(16) {
-  fill: var(--color-primary-alt-light);
-}
-#palette-squares-pattern rect:nth-of-type(17) {
-  fill: var(--color-primary-alt-lightest);
-}
-#palette-squares-pattern rect:nth-of-type(18) {
-  fill: var(--color-secondary);
-}
-#palette-squares-pattern rect:nth-of-type(19) {
-  fill: var(--color-secondary-darkest);
-}
-#palette-squares-pattern rect:nth-of-type(20) {
-  fill: var(--color-secondary-dark);
-}
-#palette-squares-pattern rect:nth-of-type(21) {
+#plaid-warp rect:nth-of-type(4) {
   fill: var(--color-secondary-light);
 }
-#palette-squares-pattern rect:nth-of-type(22) {
-  fill: var(--color-secondary-lightest);
-}
-#palette-squares-pattern rect:nth-of-type(23) {
-  fill: var(--color-gold);
-}
-#palette-squares-pattern rect:nth-of-type(24) {
-  fill: var(--color-gold-light);
-}
-#palette-squares-pattern rect:nth-of-type(25) {
-  fill: var(--color-gold-lighter);
-}
-#palette-squares-pattern rect:nth-of-type(26) {
-  fill: var(--color-gold-lightest);
-}
-#palette-squares-pattern rect:nth-of-type(27) {
-  fill: var(--color-green);
-}
-#palette-squares-pattern rect:nth-of-type(28) {
-  fill: var(--color-green-light);
-}
-#palette-squares-pattern rect:nth-of-type(29) {
+#plaid-warp rect:nth-of-type(5) {
   fill: var(--color-green-lighter);
 }
-#palette-squares-pattern rect:nth-of-type(30) {
-  fill: var(--color-green-lightest);
-}
-#palette-squares-pattern rect:nth-of-type(31) {
-  fill: var(--color-cool-blue);
-}
-#palette-squares-pattern rect:nth-of-type(32) {
-  fill: var(--color-cool-blue-light);
-}
-#palette-squares-pattern rect:nth-of-type(33) {
+#plaid-warp rect:nth-of-type(6) {
   fill: var(--color-cool-blue-lighter);
-}
-#palette-squares-pattern rect:nth-of-type(34) {
-  fill: var(--color-cool-blue-lightest);
-}
-#palette-squares-pattern rect:nth-of-type(35) {
-  fill: var(--color-primary);
-}
-#palette-squares-pattern rect:nth-of-type(36) {
-  fill: var(--color-primary-darker);
 }
 
 /* Full-width layout */
