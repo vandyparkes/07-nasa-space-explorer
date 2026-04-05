@@ -56,50 +56,76 @@
         <span class="galaxy galaxy--barred"></span>
         <span class="galaxy galaxy--elliptical"></span>
       </div>
-      <ul class="solar-system" aria-label="The solar system: Sun and planets in order">
-        <li class="solar-item">
-          <span class="solar-node solar-node--sun" title="Sun"></span>
-          <span class="solar-label">Sun</span>
-        </li>
-        <li class="solar-item">
-          <span class="solar-node solar-node--mercury" title="Mercury"></span>
-          <span class="solar-label">Mercury</span>
-        </li>
-        <li class="solar-item">
-          <span class="solar-node solar-node--venus" title="Venus"></span>
-          <span class="solar-label">Venus</span>
-        </li>
-        <li class="solar-item">
-          <span class="solar-node solar-node--earth" title="Earth"></span>
-          <span class="solar-label">Earth</span>
-        </li>
-        <li class="solar-item">
-          <span class="solar-node solar-node--mars" title="Mars"></span>
-          <span class="solar-label">Mars</span>
-        </li>
-        <li class="solar-item">
-          <span class="solar-node solar-node--jupiter" title="Jupiter"></span>
-          <span class="solar-label">Jupiter</span>
-        </li>
-        <li class="solar-item">
-          <span class="solar-node solar-node--saturn" title="Saturn"></span>
-          <span class="solar-label">Saturn</span>
-        </li>
-        <li class="solar-item">
-          <span class="solar-node solar-node--uranus" title="Uranus"></span>
-          <span class="solar-label">Uranus</span>
-        </li>
-        <li class="solar-item">
-          <span class="solar-node solar-node--neptune" title="Neptune"></span>
-          <span class="solar-label">Neptune</span>
-        </li>
-      </ul>
-      <div class="filters-controls">
-        <input type="date" id="startDate" class="planet-field planet-field--start" aria-label="Start date" />
-        <input type="date" id="endDate" class="planet-field planet-field--end" aria-label="End date" />
-        <button type="button" id="fetchButton" class="planet-field planet-field--action">
-          Get Space Images
-        </button>
+      <div class="filters-date-calendar" role="group" aria-label="APOD date range">
+        <span class="filters-date-calendar__heading">Date range</span>
+        <div class="filters-date-calendar__row">
+          <input type="date" id="startDate" class="planet-field planet-field--start" aria-label="Start date" />
+          <span class="filters-date-calendar__sep" aria-hidden="true">→</span>
+          <input type="date" id="endDate" class="planet-field planet-field--end" aria-label="End date" />
+        </div>
+      </div>
+      <div class="filters-orbit">
+        <ul class="solar-system solar-system--orbit" aria-label="The solar system: Sun and planets in order">
+          <li class="solar-item">
+            <span class="solar-item-inner">
+              <span class="solar-node solar-node--sun" title="Sun"></span>
+              <span class="solar-label">Sun</span>
+            </span>
+          </li>
+          <li class="solar-item">
+            <span class="solar-item-inner">
+              <span class="solar-node solar-node--mercury" title="Mercury"></span>
+              <span class="solar-label">Mercury</span>
+            </span>
+          </li>
+          <li class="solar-item">
+            <span class="solar-item-inner">
+              <span class="solar-node solar-node--venus" title="Venus"></span>
+              <span class="solar-label">Venus</span>
+            </span>
+          </li>
+          <li class="solar-item">
+            <span class="solar-item-inner">
+              <span class="solar-node solar-node--earth" title="Earth"></span>
+              <span class="solar-label">Earth</span>
+            </span>
+          </li>
+          <li class="solar-item">
+            <span class="solar-item-inner">
+              <span class="solar-node solar-node--mars" title="Mars"></span>
+              <span class="solar-label">Mars</span>
+            </span>
+          </li>
+          <li class="solar-item">
+            <span class="solar-item-inner">
+              <span class="solar-node solar-node--jupiter" title="Jupiter"></span>
+              <span class="solar-label">Jupiter</span>
+            </span>
+          </li>
+          <li class="solar-item">
+            <span class="solar-item-inner">
+              <span class="solar-node solar-node--saturn" title="Saturn"></span>
+              <span class="solar-label">Saturn</span>
+            </span>
+          </li>
+          <li class="solar-item">
+            <span class="solar-item-inner">
+              <span class="solar-node solar-node--uranus" title="Uranus"></span>
+              <span class="solar-label">Uranus</span>
+            </span>
+          </li>
+          <li class="solar-item">
+            <span class="solar-item-inner">
+              <span class="solar-node solar-node--neptune" title="Neptune"></span>
+              <span class="solar-label">Neptune</span>
+            </span>
+          </li>
+        </ul>
+        <div class="filters-controls filters-hub">
+          <button type="button" id="fetchButton" class="planet-field planet-field--action">
+            Get Space Images
+          </button>
+        </div>
       </div>
     </div>
 
@@ -130,6 +156,10 @@
       <p id="modalExplanation" class="modal-explanation"></p>
     </div>
   </div>
+
+  <button type="button" id="backToTop" class="back-to-top" hidden aria-label="Back to top">
+    <span class="back-to-top__rocket" aria-hidden="true">🚀</span>
+  </button>
 
   <script src="js/dateRange.js"></script>
   <script src="js/config.js"></script>

@@ -1,5 +1,30 @@
 // NASA_API_KEY is defined in js/config.js (loaded before this script).
 
+const SPACE_FACTS = [
+  'A day on Venus is longer than a Venus year — the planet spins so slowly that it finishes an orbit around the Sun before one sunrise catches up with the last.',
+  'Neutron stars are city-sized leftovers of exploded stars; some spin hundreds of times per second and pack more mass than our Sun.',
+  'Saturn would float in a giant bathtub — if you could find one big enough — because the planet is less dense than water (on average).',
+  'Jupiter’s Great Red Spot is a storm so huge you could fit Earth inside it — and it has been raging for centuries.',
+  'Olympus Mons on Mars is a shield volcano about three times taller than Mount Everest — and so wide the slope is gentle from the ground.',
+  'Space has no air, so sound has nothing to travel through. Explosions in space are silent from far away (though vibrations can travel through ships and suits).',
+  'The Moon is slowly drifting away from Earth — roughly a few centimeters per year — which very gradually changes how tides behave.',
+  'Ganymede, one of Jupiter’s moons, is larger than the planet Mercury — moons can be surprisingly huge.',
+  'You could line up more than one million Earths across the Sun’s diameter — our star is almost incomprehensibly big.',
+  'Astronauts often grow a little taller in space because their spines stretch without gravity pressing them down — they shrink back after returning home.',
+  'Uranus is tipped on its side — its spin axis is tilted so sharply that it basically rolls around the Sun like a ball, making its seasons extreme.',
+  'Light from the Sun takes about 8 minutes to reach Earth — so when you see the Sun, you are looking a few minutes into the past.',
+];
+
+function pickRandomSpaceFact() {
+  const i = Math.floor(Math.random() * SPACE_FACTS.length);
+  return SPACE_FACTS[i];
+}
+
+const didYouKnowFactEl = document.getElementById('didYouKnowFact');
+if (didYouKnowFactEl) {
+  didYouKnowFactEl.textContent = pickRandomSpaceFact();
+}
+
 const startInput = document.getElementById('startDate');
 const endInput = document.getElementById('endDate');
 const gallery = document.getElementById('gallery');
@@ -9,8 +34,43 @@ const modalMedia = document.getElementById('modalMedia');
 const modalTitle = document.getElementById('modalTitle');
 const modalDate = document.getElementById('modalDate');
 const modalExplanation = document.getElementById('modalExplanation');
+const backToTop = document.getElementById('backToTop');
 
 const APOD_BASE = 'https://api.nasa.gov/planetary/apod';
+
+const BACK_TO_TOP_SHOW_AFTER = 320;
+let backToTopScrollScheduled = false;
+
+function syncBackToTopVisibility() {
+  if (!backToTop) return;
+  if (window.scrollY > BACK_TO_TOP_SHOW_AFTER) {
+    backToTop.removeAttribute('hidden');
+  } else {
+    backToTop.setAttribute('hidden', '');
+  }
+}
+
+window.addEventListener(
+  'scroll',
+  () => {
+    if (!backToTop || backToTopScrollScheduled) return;
+    backToTopScrollScheduled = true;
+    requestAnimationFrame(() => {
+      syncBackToTopVisibility();
+      backToTopScrollScheduled = false;
+    });
+  },
+  { passive: true }
+);
+
+syncBackToTopVisibility();
+
+backToTop?.addEventListener('click', () => {
+  const instant =
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({ top: 0, behavior: instant ? 'auto' : 'smooth' });
+});
 
 /** @param {string | undefined} url */
 function youtubeEmbedSrcFromUrl(url) {

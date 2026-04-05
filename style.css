@@ -39,8 +39,11 @@
   --color-cool-blue-lighter: #8ba6ca;
   --color-cool-blue-lightest: #dce4ef;
 
-  /* Darker than cool-blue-lightest so the page reads less bright behind the grid */
-  --color-bg-page: #b8c8df;
+  /* Backdrop only — NASAWDS primary + background (plaid + html); matches gray-cool-light */
+  --color-gray-warm-dark: #494440;
+  --color-gray-warm-light: #e4e2e0;
+  --color-gray-cool-light: #dce4ef;
+  --color-bg-page: var(--color-gray-cool-light);
   /* Applied to the full-screen palette SVG (1 = unchanged) */
   --palette-bg-brightness: 0.82;
   /* Target repeat size in px; keep in sync with patternTransform scale on plaid patterns (84 × scale) */
@@ -54,9 +57,54 @@
   padding: 0;
 }
 
-/* Base page styles */
+/* Base page styles — html fades only through NASAWDS primary + background tokens
+   (see https://nasa.github.io/nasawds-site/components/colors/) */
+@keyframes html-bg-flow {
+  0%,
+  100% {
+    background-color: var(--color-gray-cool-light);
+  }
+  8% {
+    background-color: var(--color-gray-lightest);
+  }
+  16% {
+    background-color: var(--color-gray-warm-light);
+  }
+  24% {
+    background-color: var(--color-gray-warm-dark);
+  }
+  32% {
+    background-color: var(--color-gray-lighter);
+  }
+  40% {
+    background-color: var(--color-white);
+  }
+  48% {
+    background-color: var(--color-gray-light);
+  }
+  56% {
+    background-color: var(--color-gray);
+  }
+  64% {
+    background-color: var(--color-gray-dark);
+  }
+  72% {
+    background-color: var(--color-base);
+  }
+  80% {
+    background-color: var(--color-primary-darkest);
+  }
+  88% {
+    background-color: var(--color-primary-darker);
+  }
+  96% {
+    background-color: var(--color-primary);
+  }
+}
+
 html {
   background-color: var(--color-bg-page);
+  animation: html-bg-flow 14s ease-in-out infinite;
 }
 
 body {
@@ -75,39 +123,59 @@ body {
   pointer-events: none;
 }
 
+/* Plaid wash: brightness only — keeps stripe fills on the same NASAWDS hexes (no hue / saturate shift) */
+@keyframes palette-bg-global-flow {
+  0%,
+  100% {
+    filter: brightness(0.72);
+  }
+  25% {
+    filter: brightness(0.92);
+  }
+  50% {
+    filter: brightness(0.8);
+  }
+  75% {
+    filter: brightness(0.86);
+  }
+}
+
 .palette-bg-svg {
   display: block;
   width: 100%;
   height: 100%;
-  filter: brightness(var(--palette-bg-brightness));
+  filter: brightness(0.8);
+  animation: palette-bg-global-flow 12s ease-in-out infinite;
   isolation: isolate;
 }
 
 /* Vertical threads sit on top of horizontal bands for a woven plaid */
+@keyframes plaid-warp-breathe {
+  0%,
+  100% {
+    opacity: 0.46;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
+
 .palette-bg-svg .plaid-warp-overlay {
   mix-blend-mode: multiply;
   opacity: 0.58;
+  animation: plaid-warp-breathe 9s ease-in-out infinite;
 }
 
-/* Per-tile drift: hue / saturation / brightness never fully re-sync (unique duration + delay + direction) */
+/* Per-stripe shimmer on top of the global wash */
 @keyframes palette-tile-drift {
   0% {
-    filter: hue-rotate(0deg) saturate(1) brightness(1);
+    filter: brightness(0.9);
   }
-  17% {
-    filter: hue-rotate(62deg) saturate(1.22) brightness(1.09);
-  }
-  38% {
-    filter: hue-rotate(163deg) saturate(0.78) brightness(0.9);
-  }
-  61% {
-    filter: hue-rotate(241deg) saturate(1.14) brightness(1.06);
-  }
-  82% {
-    filter: hue-rotate(318deg) saturate(0.92) brightness(0.96);
+  50% {
+    filter: brightness(1.12);
   }
   100% {
-    filter: hue-rotate(360deg) saturate(1) brightness(1);
+    filter: brightness(0.9);
   }
 }
 
@@ -115,8 +183,8 @@ body {
 #plaid-warp rect {
   transform-box: fill-box;
   transform-origin: center;
-  animation: palette-tile-drift calc(11.3s + var(--palette-i) * 0.437s) ease-in-out infinite alternate;
-  animation-delay: calc(var(--palette-i) * -0.583s);
+  animation: palette-tile-drift calc(4.2s + var(--palette-i) * 0.22s) ease-in-out infinite alternate;
+  animation-delay: calc(var(--palette-i) * -0.31s);
 }
 
 #plaid-weft rect:nth-of-type(even),
@@ -125,13 +193,32 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    animation: none;
+  }
+
+  .palette-bg-svg {
+    animation: none;
+    filter: brightness(var(--palette-bg-brightness));
+  }
+
+  .palette-bg-svg .plaid-warp-overlay {
+    animation: none;
+    opacity: 0.58;
+  }
+
   #plaid-weft rect,
   #plaid-warp rect {
     animation: none;
   }
+
+  .solar-system--orbit,
+  .solar-system--orbit .solar-item-inner {
+    animation: none;
+  }
 }
 
-/* Horizontal bands (weft): former checkerboard top row */
+/* Horizontal bands (weft): NASAWDS “Primary colors” + “Background colors” (gray, gray-dark) */
 #plaid-weft rect:nth-of-type(1) {
   fill: var(--color-primary);
 }
@@ -151,24 +238,99 @@ body {
   fill: var(--color-gray);
 }
 
-/* Vertical bands (warp): colors from former column 2 for crossing contrast */
+/* Vertical bands (warp): same palette — white + gray scale + warm + cool background tones */
 #plaid-warp rect:nth-of-type(1) {
-  fill: var(--color-primary-darkest);
+  fill: var(--color-white);
 }
 #plaid-warp rect:nth-of-type(2) {
-  fill: var(--color-gray-lightest);
+  fill: var(--color-gray-light);
 }
 #plaid-warp rect:nth-of-type(3) {
-  fill: var(--color-primary-alt-dark);
+  fill: var(--color-gray-lighter);
 }
 #plaid-warp rect:nth-of-type(4) {
-  fill: var(--color-secondary-light);
+  fill: var(--color-gray-warm-light);
 }
 #plaid-warp rect:nth-of-type(5) {
-  fill: var(--color-green-lighter);
+  fill: var(--color-gray-warm-dark);
 }
 #plaid-warp rect:nth-of-type(6) {
-  fill: var(--color-cool-blue-lighter);
+  fill: var(--color-gray-cool-light);
+}
+
+/* Back to top — rocket (shown after scroll; wired in js/script.js) */
+.back-to-top {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 900;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border-radius: 50%;
+  border: 3px solid var(--color-primary);
+  background: var(--color-primary-darker);
+  color: var(--color-white);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(6, 31, 74, 0.45);
+  display: grid;
+  place-items: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.back-to-top[hidden] {
+  display: none;
+}
+
+.back-to-top:hover {
+  transform: translateY(-4px);
+  background: var(--color-primary);
+  box-shadow: 0 10px 24px rgba(6, 31, 74, 0.38);
+}
+
+.back-to-top:active {
+  transform: translateY(-1px);
+}
+
+.back-to-top:focus {
+  outline: none;
+}
+
+.back-to-top:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+@keyframes back-to-top-rocket {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.back-to-top__rocket {
+  font-size: 1.6rem;
+  line-height: 1;
+  display: block;
+  animation: back-to-top-rocket 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back-to-top__rocket {
+    animation: none;
+  }
+
+  .back-to-top {
+    transition: none;
+  }
+}
+
+body.modal-open .back-to-top {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* Full-width layout */
@@ -214,7 +376,7 @@ h1 {
   align-items: center;
   margin-bottom: 20px;
   padding: 24px 20px 28px;
-  overflow: hidden;
+  overflow: visible;
   background: radial-gradient(ellipse 120% 80% at 50% 100%, var(--color-primary-darkest) 0%, transparent 55%),
     var(--color-primary-alt-lightest);
   border: 1px solid var(--color-primary-alt-light);
@@ -309,28 +471,163 @@ h1 {
   animation: galaxy-pulse 28s ease-in-out infinite;
 }
 
-/* Sun through Neptune — decorative row above date controls */
-.solar-system {
+/* Single date-range panel (above orbit; not inside planet ring) */
+.filters-date-calendar {
   position: relative;
   z-index: 1;
+  width: min(100%, 26rem);
+  margin-inline: auto;
+  padding: 14px 16px 16px;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.1) 0%, transparent 45%),
+    linear-gradient(165deg, rgba(6, 31, 74, 0.92) 0%, rgba(10, 56, 112, 0.88) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 6px 24px rgba(6, 31, 74, 0.28);
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 14px 20px;
-  width: 100%;
-  max-width: 1020px;
-  margin: 0;
-  padding: 8px 0 4px;
-  list-style: none;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
 }
 
-.solar-item {
+.filters-date-calendar__heading {
+  font-family: Verdana, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  text-align: center;
+}
+
+.filters-date-calendar__row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 12px;
+}
+
+.filters-date-calendar__sep {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  user-select: none;
+}
+
+.filters .filters-date-calendar .planet-field {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: min(100%, 9.5rem);
+  max-width: 11rem;
+  min-height: 48px;
+}
+
+/* Orbit stage: planets revolve around the action button */
+.filters-orbit {
+  --orbit-r: clamp(88px, 32vw, 232px);
+  --orbit-period: 110s;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: calc(var(--orbit-r) * 2 + 8.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0 8px;
+}
+
+@keyframes solar-orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes solar-orbit-counter {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+/* Sun through Neptune — circular orbit around hub */
+.solar-system--orbit {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+  transform-origin: 0 0;
+  animation: solar-orbit-spin var(--orbit-period) linear infinite;
+}
+
+.solar-system--orbit .solar-item {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  transform: rotate(var(--orbit-angle)) translateY(calc(-1 * var(--orbit-r)))
+    translate(-50%, -50%);
+  margin: 0;
+  padding: 0;
+}
+
+.solar-system--orbit .solar-item:nth-child(1) {
+  --orbit-angle: 0deg;
+}
+
+.solar-system--orbit .solar-item:nth-child(2) {
+  --orbit-angle: 40deg;
+}
+
+.solar-system--orbit .solar-item:nth-child(3) {
+  --orbit-angle: 80deg;
+}
+
+.solar-system--orbit .solar-item:nth-child(4) {
+  --orbit-angle: 120deg;
+}
+
+.solar-system--orbit .solar-item:nth-child(5) {
+  --orbit-angle: 160deg;
+}
+
+.solar-system--orbit .solar-item:nth-child(6) {
+  --orbit-angle: 200deg;
+}
+
+.solar-system--orbit .solar-item:nth-child(7) {
+  --orbit-angle: 240deg;
+}
+
+.solar-system--orbit .solar-item:nth-child(8) {
+  --orbit-angle: 280deg;
+}
+
+.solar-system--orbit .solar-item:nth-child(9) {
+  --orbit-angle: 320deg;
+}
+
+.solar-system--orbit .solar-item-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  flex: 0 0 auto;
+  transform-origin: center center;
+  animation: solar-orbit-counter var(--orbit-period) linear infinite;
 }
 
 .solar-label {
@@ -446,13 +743,41 @@ h1 {
 
 .filters-controls {
   position: relative;
-  z-index: 1;
+  z-index: 2;
+}
+
+/* Circular hub: centered fetch action (dates live in .filters-date-calendar) */
+.filters .filters-hub {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  justify-content: center;
   align-items: center;
-  width: 100%;
+  justify-content: center;
+  width: min(100%, clamp(200px, 56vw, 280px));
+  aspect-ratio: 1;
+  margin-inline: auto;
+  padding: clamp(18px, 5vw, 28px);
+  box-sizing: border-box;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.12) 0%, transparent 42%),
+    radial-gradient(circle at 72% 78%, rgba(2, 191, 231, 0.12) 0%, transparent 48%),
+    linear-gradient(165deg, var(--color-primary-darkest) 0%, var(--color-primary-darker) 55%, var(--color-primary-darkest) 100%);
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.2),
+    inset 0 -12px 28px rgba(0, 0, 0, 0.35),
+    0 8px 28px rgba(6, 31, 74, 0.35);
+}
+
+.filters .filters-hub .planet-field--action {
+  flex-shrink: 0;
+  width: min(100%, 11.5rem);
+  aspect-ratio: 1;
+  min-height: unset;
+  padding: 8px 10px;
+  border-radius: 50%;
+  font-size: clamp(10px, 2.8vw, 12px);
+  line-height: 1.15;
 }
 
 /* Planet-shaped clickable controls (filters only) */
@@ -463,7 +788,7 @@ h1 {
   color: var(--color-white);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
   width: 100%;
-  max-width: 280px;
+  max-width: none;
   min-height: 52px;
   padding: 10px 18px;
   border: none;
@@ -559,36 +884,31 @@ h1 {
     radial-gradient(circle at 50% 110%, var(--color-primary) 0%, var(--color-primary-darker) 45%, var(--color-primary-darkest) 100%);
 }
 
-/* Stack horizontally on wider screens — three “planets” in a row */
+/* Wider screens: larger orbit ring */
 @media (min-width: 600px) {
   .filters {
     padding: 20px 24px;
     gap: 22px;
   }
 
-  .filters-controls {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-    align-items: center;
+  .filters-date-calendar {
+    width: min(100%, 28rem);
+    padding: 16px 20px 18px;
   }
 
-  .filters .planet-field {
-    width: 112px;
-    height: 112px;
-    max-width: none;
-    min-height: unset;
-    padding: 8px 10px;
-    border-radius: 50%;
-    font-size: 10px;
-    line-height: 1.15;
+  .filters-orbit {
+    --orbit-r: clamp(128px, 24vw, 300px);
+    min-height: calc(var(--orbit-r) * 2 + clamp(7.5rem, 22vw, 14rem));
   }
 
-  .filters .planet-field--action {
-    width: 128px;
-    height: 128px;
-    font-size: 10px;
+  .filters .filters-hub {
+    width: min(100%, clamp(220px, 34vw, 300px));
+    padding: clamp(20px, 4vw, 32px);
+  }
+
+  .filters .filters-hub .planet-field--action {
+    width: min(100%, clamp(7.5rem, 18vw, 9.5rem));
+    font-size: clamp(9px, 1.5vw, 11px);
     padding: 10px 12px;
   }
 }
