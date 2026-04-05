@@ -569,7 +569,7 @@ fetchButton.addEventListener('click', async () => {
   }
 
   showPlaceholder(
-    '<div class="placeholder-icon">⏳</div><p>Loading from NASA…</p>'
+    '<p class="placeholder-loading">Loading from NASA<span class="loading-ellipsis" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></p>'
   );
   fetchButton.disabled = true;
 
