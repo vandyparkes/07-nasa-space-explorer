@@ -12,6 +12,103 @@ const modalExplanation = document.getElementById('modalExplanation');
 
 const APOD_BASE = 'https://api.nasa.gov/planetary/apod';
 
+/** @param {string | undefined} url */
+function youtubeEmbedSrcFromUrl(url) {
+  if (!url || typeof url !== 'string') return null;
+  try {
+    const u = new URL(
+      url.startsWith('//') ? `https:${url}` : url
+    );
+    const host = u.hostname.replace(/^www\./, '');
+    if (host === 'youtu.be') {
+      const id = u.pathname.split('/').filter(Boolean)[0];
+      return id ? `https://www.youtube.com/embed/${encodeURIComponent(id)}${u.search}` : null;
+    }
+    if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com') {
+      if (u.pathname.startsWith('/embed/')) {
+        const rest = u.pathname.slice('/embed/'.length);
+        const id = rest.split('/')[0];
+        return id
+          ? `https://www.youtube.com/embed/${encodeURIComponent(id)}${u.search}`
+          : null;
+      }
+      if (u.pathname === '/watch' || u.pathname === '/watch/') {
+        const id = u.searchParams.get('v');
+        return id
+          ? `https://www.youtube.com/embed/${encodeURIComponent(id)}`
+          : null;
+      }
+      if (u.pathname.startsWith('/shorts/')) {
+        const id = u.pathname.slice('/shorts/'.length).split('/')[0];
+        return id ? `https://www.youtube.com/embed/${encodeURIComponent(id)}` : null;
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+/** @param {string | undefined} url */
+function youtubeVideoIdFromUrl(url) {
+  if (!url || typeof url !== 'string') return null;
+  try {
+    const u = new URL(
+      url.startsWith('//') ? `https:${url}` : url
+    );
+    const host = u.hostname.replace(/^www\./, '');
+    if (host === 'youtu.be') {
+      const id = u.pathname.split('/').filter(Boolean)[0];
+      return id || null;
+    }
+    if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com') {
+      if (u.pathname.startsWith('/embed/')) {
+        const rest = u.pathname.slice('/embed/'.length);
+        return rest.split('/')[0] || null;
+      }
+      if (u.pathname === '/watch' || u.pathname === '/watch/') {
+        return u.searchParams.get('v');
+      }
+      if (u.pathname.startsWith('/shorts/')) {
+        return u.pathname.slice('/shorts/'.length).split('/')[0] || null;
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+/** Best thumbnail URL for a video APOD (API field or derived YouTube still). */
+function videoThumbnailSrc(item) {
+  if (item.thumbnail_url) return item.thumbnail_url;
+  const id = youtubeVideoIdFromUrl(item.url);
+  if (id) return `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  return null;
+}
+
+/** External link styled as a small spiral galaxy (e.g. watch video on YouTube). */
+function createGalaxyExternalLink(href, labelText) {
+  const link = document.createElement('a');
+  link.href = href;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.className = 'modal-galaxy-link';
+  const galaxy = document.createElement('span');
+  galaxy.className = 'modal-galaxy-link__galaxy';
+  galaxy.setAttribute('aria-hidden', 'true');
+  const label = document.createElement('span');
+  label.className = 'modal-galaxy-link__label';
+  label.textContent = labelText;
+  link.appendChild(galaxy);
+  link.appendChild(label);
+  return link;
+}
+
+function videoModalLinkLabel(url) {
+  return youtubeVideoIdFromUrl(url) ? 'Watch on YouTube' : 'Open video';
+}
+
 const CHUNK_DAYS = 9;
 const SCROLL_ROOT_MARGIN = '240px';
 
@@ -243,35 +340,53 @@ function openApodModal(item) {
 
   modalMedia.innerHTML = '';
 
-  if (item.media_type === 'image' && (item.hdurl || item.url)) {
+  const mediaType = String(item.media_type || '').toLowerCase();
+
+  if (mediaType === 'image' && (item.hdurl || item.url)) {
     const img = document.createElement('img');
     img.src = item.hdurl || item.url;
     img.alt = item.title || 'NASA Astronomy Picture of the Day';
     img.className = 'modal-image';
     modalMedia.appendChild(img);
-  } else if (item.media_type === 'video') {
-    if (item.thumbnail_url) {
-      const img = document.createElement('img');
-      img.src = item.thumbnail_url;
-      img.alt = 'Video thumbnail';
-      img.className = 'modal-image';
-      modalMedia.appendChild(img);
+  } else if (mediaType === 'video') {
+    const embedSrc = youtubeEmbedSrcFromUrl(item.url);
+    if (embedSrc) {
+      const wrap = document.createElement('div');
+      wrap.className = 'modal-video-embed';
+      const iframe = document.createElement('iframe');
+      iframe.src = embedSrc;
+      iframe.title = item.title
+        ? `Video: ${item.title}`
+        : 'NASA Astronomy Picture of the Day video';
+      iframe.setAttribute(
+        'allow',
+        'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
+      );
+      iframe.setAttribute('allowfullscreen', '');
+      iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+      wrap.appendChild(iframe);
+      modalMedia.appendChild(wrap);
+    } else {
+      const thumb = videoThumbnailSrc(item);
+      if (thumb) {
+        const img = document.createElement('img');
+        img.src = thumb;
+        img.alt = item.title ? `${item.title} (video)` : 'Video thumbnail';
+        img.className = 'modal-image';
+        modalMedia.appendChild(img);
+      }
     }
     if (item.url) {
-      const link = document.createElement('a');
-      link.href = item.url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.className = 'modal-video-link';
-      link.textContent = 'Open video on NASA / provider site';
-      modalMedia.appendChild(link);
+      modalMedia.appendChild(
+        createGalaxyExternalLink(item.url, videoModalLinkLabel(item.url))
+      );
     }
   } else if (item.url) {
     const link = document.createElement('a');
     link.href = item.url;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    link.className = 'modal-video-link';
+    link.className = 'modal-aux-link';
     link.textContent = 'Open media';
     modalMedia.appendChild(link);
   }
@@ -294,28 +409,31 @@ function createApodCard(item) {
     `View details: ${item.title || 'Untitled'}${item.date ? `, ${item.date}` : ''}`
   );
 
-  if (item.media_type === 'image' && item.url) {
+  const cardMediaType = String(item.media_type || '').toLowerCase();
+
+  if (cardMediaType === 'image' && item.url) {
     const img = document.createElement('img');
     img.src = item.url;
     img.alt = item.title || 'NASA Astronomy Picture of the Day';
     img.loading = 'lazy';
     media.appendChild(img);
-  } else if (item.media_type === 'video') {
-    if (item.thumbnail_url) {
+  } else if (cardMediaType === 'video') {
+    const thumbSrc = videoThumbnailSrc(item);
+    if (thumbSrc) {
+      const wrap = document.createElement('div');
+      wrap.className = 'gallery-item__video-thumb-wrap';
       const thumb = document.createElement('img');
-      thumb.src = item.thumbnail_url;
-      thumb.alt = 'Video thumbnail';
+      thumb.src = thumbSrc;
+      thumb.alt = item.title ? `${item.title} (video)` : 'Video thumbnail';
       thumb.loading = 'lazy';
-      media.appendChild(thumb);
-    }
-    if (item.url) {
-      const link = document.createElement('a');
-      link.href = item.url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.textContent = 'Open video';
-      link.className = 'gallery-item__video-link';
-      media.appendChild(link);
+      wrap.appendChild(thumb);
+      media.appendChild(wrap);
+    } else {
+      const fallback = document.createElement('div');
+      fallback.className = 'gallery-item__video-fallback';
+      fallback.setAttribute('aria-hidden', 'true');
+      fallback.textContent = 'Video';
+      media.appendChild(fallback);
     }
   } else if (item.url) {
     const link = document.createElement('a');
@@ -342,15 +460,14 @@ function createApodCard(item) {
   card.appendChild(media);
   card.appendChild(caption);
 
-  const open = (e) => {
-    if (e.target.closest('a')) return;
+  const open = () => {
     openApodModal(item);
   };
   media.addEventListener('click', open);
   media.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      open(e);
+      open();
     }
   });
 

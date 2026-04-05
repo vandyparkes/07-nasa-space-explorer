@@ -657,10 +657,54 @@ h1 {
   border-radius: 4px;
 }
 
-.gallery-item__video-link {
-  display: inline-block;
-  margin-top: 8px;
-  align-self: flex-start;
+/* Video cards: clickable thumbnail only (opens modal); play hint overlay. */
+.gallery-item__video-thumb-wrap {
+  position: relative;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: clamp(160px, 22vh, 280px);
+  max-height: 40vh;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--color-primary-darkest);
+  display: flex;
+}
+
+.gallery-item__video-thumb-wrap img {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: clamp(160px, 22vh, 280px);
+  max-height: 40vh;
+  object-fit: cover;
+}
+
+.gallery-item__video-thumb-wrap::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-40%, -50%);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 14px 0 14px 22px;
+  border-color: transparent transparent transparent rgba(255, 255, 255, 0.92);
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+}
+
+.gallery-item__video-fallback {
+  flex: 1 1 auto;
+  min-height: clamp(160px, 22vh, 280px);
+  max-height: 40vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-darkest);
+  color: rgba(255, 255, 255, 0.8);
+  border-radius: 4px;
+  font-size: 15px;
+  letter-spacing: 0.04em;
 }
 
 .gallery-item__caption {
@@ -781,6 +825,30 @@ body.modal-open {
   background: var(--color-primary-darkest);
 }
 
+/* Responsive 16:9 box; iframe height:100% needs a sized ancestor (not only aspect-ratio). */
+.modal-video-embed {
+  position: relative;
+  width: min(100%, calc(70vh * 16 / 9));
+  margin-inline: auto;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--color-primary-darkest);
+}
+
+.modal-video-embed::before {
+  content: "";
+  display: block;
+  padding-bottom: 56.25%;
+}
+
+.modal-video-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 .modal-title {
   font-size: 1.35rem;
   color: var(--color-base);
@@ -801,17 +869,95 @@ body.modal-open {
   white-space: pre-wrap;
 }
 
-.modal-video-link {
+/* Video APOD: open original URL — spiral galaxy button below embed/thumbnail. */
+.modal-galaxy-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 14px auto 0;
+  padding: 14px 20px 16px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-primary-alt-darkest);
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--color-gray-lightest) 0%, var(--color-white) 100%);
+  border: 1px solid var(--color-cool-blue-lighter);
+  box-shadow: 0 4px 14px rgba(32, 84, 147, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+}
+
+.modal-galaxy-link__galaxy {
+  display: block;
+  width: 72px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  transform: rotate(-14deg);
+  background:
+    radial-gradient(ellipse 38% 48% at 50% 50%, rgba(255, 235, 200, 0.75) 0%, rgba(255, 220, 170, 0.35) 28%, transparent 58%),
+    conic-gradient(
+      from 200deg at 50% 50%,
+      transparent 0deg,
+      rgba(80, 60, 140, 0.42) 42deg,
+      transparent 78deg,
+      rgba(120, 90, 180, 0.34) 118deg,
+      transparent 155deg,
+      rgba(60, 100, 160, 0.4) 205deg,
+      transparent 268deg,
+      rgba(100, 70, 150, 0.38) 310deg,
+      transparent 360deg
+    );
+  box-shadow:
+    inset 0 0 12px rgba(255, 255, 255, 0.35),
+    0 2px 8px rgba(40, 60, 120, 0.25);
+  animation: galaxy-drift 18s ease-in-out infinite alternate;
+}
+
+.modal-galaxy-link__label {
+  line-height: 1.3;
+}
+
+.modal-galaxy-link:visited {
+  color: var(--color-visited);
+}
+
+.modal-galaxy-link:hover {
+  color: var(--color-primary-alt-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(32, 84, 147, 0.18);
+}
+
+.modal-galaxy-link:hover .modal-galaxy-link__galaxy {
+  filter: brightness(1.08);
+}
+
+.modal-galaxy-link:focus {
+  outline: none;
+}
+
+.modal-galaxy-link:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+/* Rare APOD types that are not image/video in the modal. */
+.modal-aux-link {
   display: inline-block;
   margin-top: 12px;
   font-size: 16px;
   color: var(--color-primary-alt-darkest);
 }
 
-.modal-video-link:visited {
+.modal-aux-link:visited {
   color: var(--color-visited);
 }
 
-.modal-video-link:hover {
+.modal-aux-link:hover {
   color: var(--color-primary-alt-dark);
 }
+
