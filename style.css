@@ -851,6 +851,7 @@ h1 {
 }
 
 .solar-label {
+  font-family: var(--font-nasa);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -1068,7 +1069,7 @@ h1 {
 /* Planet-shaped clickable controls (filters only) */
 .filters .planet-field {
   --planet-glow: rgba(2, 191, 231, 0.45);
-  font-family: Arial, sans-serif;
+  font-family: var(--font-nasa);
   font-weight: 600;
   color: var(--color-white);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
