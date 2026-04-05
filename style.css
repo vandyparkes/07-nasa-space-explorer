@@ -458,16 +458,54 @@ h1 {
   align-self: stretch;
   width: calc(100% + 40px);
   margin: -24px -20px 0;
-  padding: 24px 20px 0;
+  padding: 0;
   border-radius: 11px 11px 0 0;
   background: radial-gradient(ellipse 120% 80% at 50% 100%, var(--color-primary-darkest) 0%, transparent 55%),
     var(--color-primary-alt-lightest);
 }
 
+/* Full-bleed starfield (orbit alone left black gutters from stage padding) */
+.filters-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1.2px 1.2px at 8% 18%, rgba(255, 255, 255, 0.95), transparent),
+    radial-gradient(1px 1px at 22% 42%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1.4px 1.4px at 38% 12%, rgba(230, 240, 255, 0.88), transparent),
+    radial-gradient(1px 1px at 52% 28%, rgba(255, 255, 255, 0.45), transparent),
+    radial-gradient(1.1px 1.1px at 68% 8%, rgba(255, 252, 245, 0.82), transparent),
+    radial-gradient(1px 1px at 82% 36%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1.3px 1.3px at 94% 14%, rgba(220, 230, 255, 0.75), transparent),
+    radial-gradient(1px 1px at 14% 62%, rgba(255, 255, 255, 0.42), transparent),
+    radial-gradient(1.2px 1.2px at 30% 78%, rgba(255, 245, 220, 0.68), transparent),
+    radial-gradient(1px 1px at 46% 92%, rgba(255, 255, 255, 0.38), transparent),
+    radial-gradient(1.1px 1.1px at 58% 68%, rgba(255, 255, 255, 0.62), transparent),
+    radial-gradient(1px 1px at 72% 88%, rgba(210, 225, 255, 0.48), transparent),
+    radial-gradient(1.4px 1.4px at 88% 72%, rgba(255, 255, 255, 0.78), transparent),
+    radial-gradient(1px 1px at 6% 88%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(1px 1px at 96% 52%, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1.2px 1.2px at 42% 48%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 26% 22%, rgba(255, 255, 255, 0.32), transparent),
+    radial-gradient(1.1px 1.1px at 76% 58%, rgba(255, 240, 230, 0.55), transparent),
+    radial-gradient(1px 1px at 54% 8%, rgba(255, 255, 255, 0.28), transparent),
+    radial-gradient(1.3px 1.3px at 18% 34%, rgba(200, 220, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 62% 42%, rgba(255, 255, 255, 0.33), transparent),
+    radial-gradient(1.2px 1.2px at 34% 56%, rgba(255, 255, 255, 0.48), transparent),
+    radial-gradient(1px 1px at 90% 92%, rgba(255, 255, 255, 0.36), transparent),
+    radial-gradient(ellipse 85% 70% at 48% 38%, rgba(70, 55, 120, 0.28) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 18% 72%, rgba(40, 90, 140, 0.14) 0%, transparent 50%),
+    radial-gradient(ellipse 55% 45% at 88% 62%, rgba(100, 70, 130, 0.12) 0%, transparent 48%),
+    radial-gradient(ellipse 100% 90% at 50% 50%, #18122c 0%, #0c0718 58%, #030208 100%);
+}
+
 .cosmic-backdrop {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
 }
 
@@ -704,50 +742,14 @@ h1 {
   --orbit-r: clamp(88px, 32vw, 232px);
   --orbit-period: 110s;
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: 100%;
   min-height: calc(var(--orbit-r) * 2 + 8.5rem);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 0 8px;
-}
-
-/* Starfield behind orbiting planets + action hub */
-.filters-orbit::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(1.2px 1.2px at 8% 18%, rgba(255, 255, 255, 0.95), transparent),
-    radial-gradient(1px 1px at 22% 42%, rgba(255, 255, 255, 0.55), transparent),
-    radial-gradient(1.4px 1.4px at 38% 12%, rgba(230, 240, 255, 0.88), transparent),
-    radial-gradient(1px 1px at 52% 28%, rgba(255, 255, 255, 0.45), transparent),
-    radial-gradient(1.1px 1.1px at 68% 8%, rgba(255, 252, 245, 0.82), transparent),
-    radial-gradient(1px 1px at 82% 36%, rgba(255, 255, 255, 0.5), transparent),
-    radial-gradient(1.3px 1.3px at 94% 14%, rgba(220, 230, 255, 0.75), transparent),
-    radial-gradient(1px 1px at 14% 62%, rgba(255, 255, 255, 0.42), transparent),
-    radial-gradient(1.2px 1.2px at 30% 78%, rgba(255, 245, 220, 0.68), transparent),
-    radial-gradient(1px 1px at 46% 92%, rgba(255, 255, 255, 0.38), transparent),
-    radial-gradient(1.1px 1.1px at 58% 68%, rgba(255, 255, 255, 0.62), transparent),
-    radial-gradient(1px 1px at 72% 88%, rgba(210, 225, 255, 0.48), transparent),
-    radial-gradient(1.4px 1.4px at 88% 72%, rgba(255, 255, 255, 0.78), transparent),
-    radial-gradient(1px 1px at 6% 88%, rgba(255, 255, 255, 0.35), transparent),
-    radial-gradient(1px 1px at 96% 52%, rgba(255, 255, 255, 0.4), transparent),
-    radial-gradient(1.2px 1.2px at 42% 48%, rgba(255, 255, 255, 0.5), transparent),
-    radial-gradient(1px 1px at 26% 22%, rgba(255, 255, 255, 0.32), transparent),
-    radial-gradient(1.1px 1.1px at 76% 58%, rgba(255, 240, 230, 0.55), transparent),
-    radial-gradient(1px 1px at 54% 8%, rgba(255, 255, 255, 0.28), transparent),
-    radial-gradient(1.3px 1.3px at 18% 34%, rgba(200, 220, 255, 0.6), transparent),
-    radial-gradient(1px 1px at 62% 42%, rgba(255, 255, 255, 0.33), transparent),
-    radial-gradient(1.2px 1.2px at 34% 56%, rgba(255, 255, 255, 0.48), transparent),
-    radial-gradient(1px 1px at 90% 92%, rgba(255, 255, 255, 0.36), transparent),
-    radial-gradient(ellipse 85% 70% at 48% 38%, rgba(70, 55, 120, 0.28) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 55% at 18% 72%, rgba(40, 90, 140, 0.14) 0%, transparent 50%),
-    radial-gradient(ellipse 55% 45% at 88% 62%, rgba(100, 70, 130, 0.12) 0%, transparent 48%),
-    radial-gradient(ellipse 100% 90% at 50% 50%, #18122c 0%, #0c0718 58%, #030208 100%);
+  /* Former .filters-stage padding (24px 20px) + orbit inset (12px 0 8px) */
+  padding: 36px 20px 8px;
 }
 
 .filters-orbit .solar-label {
@@ -1213,7 +1215,7 @@ h1 {
   .filters-stage {
     width: calc(100% + 48px);
     margin: -20px -24px 0;
-    padding: 20px 24px 0;
+    padding: 0;
   }
 
   .filters-date-calendar {
@@ -1224,6 +1226,7 @@ h1 {
   .filters-orbit {
     --orbit-r: clamp(128px, 24vw, 300px);
     min-height: calc(var(--orbit-r) * 2 + clamp(7.5rem, 22vw, 14rem));
+    padding: 32px 24px 8px;
   }
 
   .filters .filters-hub {
