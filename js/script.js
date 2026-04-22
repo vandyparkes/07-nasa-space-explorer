@@ -170,7 +170,14 @@ function videoModalLinkLabel(url) {
 }
 
 const CHUNK_DAYS = 9;
+/** How many APOD cards to show per step (initial load + each "Load more"). */
+const GALLERY_PAGE_SIZE = CHUNK_DAYS;
 const SCROLL_ROOT_MARGIN = '240px';
+
+/** Full sorted APOD list for the last successful date-range fetch (newest first). */
+let rangeBufferItems = null;
+/** How many entries from `rangeBufferItems` are already in the DOM. */
+let rangeBufferRendered = 0;
 
 setupDateInputs(startInput, endInput);
 
@@ -270,7 +277,100 @@ function setupInfiniteScrollObservers() {
   bottomObserver.observe(bottom);
 }
 
+function hasMoreBufferedApod() {
+  return Boolean(
+    rangeBufferItems && rangeBufferRendered < rangeBufferItems.length
+  );
+}
+
+function ensureLoadMoreUi() {
+  let wrap = document.getElementById('gallery-load-more');
+  const bottom = document.getElementById('gallery-sentinel-bottom');
+  if (!wrap && bottom) {
+    wrap = document.createElement('div');
+    wrap.id = 'gallery-load-more';
+    wrap.className = 'gallery-load-more';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'galleryLoadMoreButton';
+    btn.className = 'planet-field planet-field--action gallery-load-more__btn';
+    btn.textContent = 'Load more';
+    wrap.appendChild(btn);
+    gallery.insertBefore(wrap, bottom);
+    btn.addEventListener('click', () => {
+      appendNextGalleryPage();
+    });
+  }
+  return wrap;
+}
+
+function updateLoadMoreUi() {
+  const wrap = document.getElementById('gallery-load-more');
+  const btn = document.getElementById('galleryLoadMoreButton');
+  if (!wrap || !btn) return;
+
+  if (!hasMoreBufferedApod()) {
+    wrap.setAttribute('hidden', '');
+    btn.disabled = false;
+    btn.removeAttribute('aria-busy');
+    return;
+  }
+
+  wrap.removeAttribute('hidden');
+  const remaining = rangeBufferItems.length - rangeBufferRendered;
+  const nextBatch = Math.min(GALLERY_PAGE_SIZE, remaining);
+  btn.disabled = false;
+  btn.textContent =
+    remaining === nextBatch
+      ? 'Load more'
+      : `Load more (${remaining} more in range)`;
+  btn.setAttribute(
+    'aria-label',
+    `Show ${nextBatch} more picture${nextBatch === 1 ? '' : 's'}. ${remaining} not yet shown in this date range.`
+  );
+}
+
+function syncScrollRangeFromBuffer() {
+  if (!rangeBufferItems || rangeBufferRendered === 0) return;
+  scrollRange.shownNewest = rangeBufferItems[0].date;
+  scrollRange.shownOldest = rangeBufferItems[rangeBufferRendered - 1].date;
+}
+
+function appendNextGalleryPage() {
+  if (!rangeBufferItems) return;
+  const remaining = rangeBufferItems.length - rangeBufferRendered;
+  if (remaining <= 0) return;
+
+  ensureLoadMoreUi();
+  const wrap = document.getElementById('gallery-load-more');
+  const take = Math.min(GALLERY_PAGE_SIZE, remaining);
+  const slice = rangeBufferItems.slice(
+    rangeBufferRendered,
+    rangeBufferRendered + take
+  );
+
+  const fragment = document.createDocumentFragment();
+  for (const item of slice) {
+    fragment.appendChild(createApodCard(item));
+  }
+  const ref = wrap && gallery.contains(wrap) ? wrap : null;
+  if (ref) {
+    gallery.insertBefore(fragment, ref);
+  } else {
+    const bottom = document.getElementById('gallery-sentinel-bottom');
+    gallery.insertBefore(fragment, bottom);
+  }
+  rangeBufferRendered += take;
+  updateLoadMoreUi();
+  syncScrollRangeFromBuffer();
+}
+
 async function loadOlderApodChunk() {
+  if (hasMoreBufferedApod()) {
+    appendNextGalleryPage();
+    return;
+  }
+
   if (
     scrollRange.loadingOlder ||
     scrollRange.loadingNewer ||
@@ -301,9 +401,11 @@ async function loadOlderApodChunk() {
     }
 
     const bottom = document.getElementById('gallery-sentinel-bottom');
-    for (const item of items) {
-      gallery.insertBefore(createApodCard(item), bottom);
+    const fragment = document.createDocumentFragment();
+    for (let i = items.length - 1; i >= 0; i -= 1) {
+      fragment.appendChild(createApodCard(items[i]));
     }
+    gallery.insertBefore(fragment, bottom);
 
     const b = itemDateBounds(items);
     if (b) scrollRange.shownOldest = b.min;
@@ -350,9 +452,11 @@ async function loadNewerApodChunk() {
     const prevScrollY = window.scrollY;
 
     const top = document.getElementById('gallery-sentinel-top');
-    for (const item of items) {
-      gallery.insertBefore(createApodCard(item), top.nextSibling);
+    const fragment = document.createDocumentFragment();
+    for (let i = items.length - 1; i >= 0; i -= 1) {
+      fragment.appendChild(createApodCard(items[i]));
     }
+    gallery.insertBefore(fragment, top.nextSibling);
 
     const b = itemDateBounds(items);
     if (b) scrollRange.shownNewest = b.max;
@@ -371,6 +475,9 @@ function normalizeApodList(data) {
 }
 
 function showPlaceholder(innerHtml) {
+  disconnectScrollObservers();
+  rangeBufferItems = null;
+  rangeBufferRendered = 0;
   gallery.innerHTML = '';
   const wrap = document.createElement('div');
   wrap.className = 'placeholder';
@@ -540,18 +647,60 @@ apodModal.addEventListener('click', (e) => {
   }
 });
 
-async function fetchApodForRange(startDate, endDate) {
+/** @param {Response} res @param {unknown} data @param {string} text */
+function apodErrorMessage(res, data, text) {
+  if (data && typeof data === 'object') {
+    const err = /** @type {{ error?: { message?: string }; msg?: string }} */ (data);
+    if (typeof err.error?.message === 'string' && err.error.message.trim()) {
+      return err.error.message.trim();
+    }
+    if (typeof err.msg === 'string' && err.msg.trim()) {
+      return err.msg.trim();
+    }
+  }
+  const parts = [`HTTP ${res.status}`];
+  if (res.statusText && res.statusText.trim()) {
+    parts.push(res.statusText.trim());
+  }
+  const t = text?.trim();
+  if (t && !t.startsWith('<') && t.length < 400) {
+    parts.push(t);
+  } else if (t && t.startsWith('<')) {
+    parts.push('NASA returned an HTML error page (try again in a moment).');
+  }
+  return parts.join(' — ');
+}
+
+async function fetchApodForRange(startDate, endDate, attempt = 0) {
+  const maxAttempts = 3;
   const params = new URLSearchParams({
     api_key: NASA_API_KEY,
     start_date: startDate,
     end_date: endDate,
   });
   const res = await fetch(`${APOD_BASE}?${params}`);
-  const data = await res.json().catch(() => null);
+  const text = await res.text();
+  let data = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      /* non-JSON error bodies are common on 502/503 */
+    }
+  }
   if (!res.ok) {
-    const msg =
-      data?.error?.message || data?.msg || res.statusText || 'Request failed';
-    throw new Error(msg);
+    const retryable =
+      (res.status === 502 || res.status === 503 || res.status === 429) &&
+      attempt < maxAttempts - 1;
+    if (retryable) {
+      const delayMs = 400 * 2 ** attempt;
+      await new Promise((r) => setTimeout(r, delayMs));
+      return fetchApodForRange(startDate, endDate, attempt + 1);
+    }
+    throw new Error(apodErrorMessage(res, data, text));
+  }
+  if (data === null || data === undefined) {
+    throw new Error('Empty or invalid JSON from NASA APOD.');
   }
   return normalizeApodList(data);
 }
@@ -577,6 +726,8 @@ fetchButton.addEventListener('click', async () => {
     const items = await fetchApodForRange(start, end);
     disconnectScrollObservers();
     gallery.innerHTML = '';
+    rangeBufferItems = null;
+    rangeBufferRendered = 0;
     scrollRange = {
       shownOldest: null,
       shownNewest: null,
@@ -590,17 +741,15 @@ fetchButton.addEventListener('click', async () => {
       return;
     }
     items.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-    for (const item of items) {
-      gallery.appendChild(createApodCard(item));
-    }
-    const bounds = itemDateBounds(items);
-    if (bounds) {
-      scrollRange.shownOldest = bounds.min;
-      scrollRange.shownNewest = bounds.max;
-    }
+    rangeBufferItems = items;
+    rangeBufferRendered = 0;
+    ensureScrollSentinels();
+    appendNextGalleryPage();
     setupInfiniteScrollObservers();
   } catch (err) {
     disconnectScrollObservers();
+    rangeBufferItems = null;
+    rangeBufferRendered = 0;
     showPlaceholder(
       `<p>Could not load APOD. ${err.message || 'Unknown error'}</p>`
     );

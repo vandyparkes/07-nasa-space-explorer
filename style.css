@@ -1252,6 +1252,21 @@ h1 {
   visibility: hidden;
 }
 
+.gallery-load-more {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  padding: clamp(12px, 2.5vw, 20px) 0 4px;
+}
+
+.gallery-load-more[hidden] {
+  display: none;
+}
+
+.gallery-load-more__btn {
+  min-width: min(100%, 12rem);
+}
+
 /* Gallery — responsive grid fills available width */
 .gallery {
   display: grid;
@@ -1267,6 +1282,8 @@ h1 {
 
 /* Gallery items — only the media block opens the modal; title/date are outside */
 .gallery-item {
+  content-visibility: auto;
+  contain-intrinsic-size: 280px min(420px, 85vh);
   min-width: 0;
   width: 100%;
   background: linear-gradient(
